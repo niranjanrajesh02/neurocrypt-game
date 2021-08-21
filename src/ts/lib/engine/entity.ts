@@ -137,7 +137,7 @@ export default class Entity extends Sprite {
      * 
      * @param delta PIXI.Ticker thingy
      */
-    public move(delta: number) {
+    public move = (delta: number) => {
         this.x += this.vx * delta;
         this.y += this.vy * delta;
     }

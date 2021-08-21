@@ -11,6 +11,8 @@
     "vite": "^2.4.4"
   },
   "dependencies": {
+    "firebase": "^8.10.0",
+    "howler": "^2.2.3",
     "pixi.js": "5.3.10"
   }
 }

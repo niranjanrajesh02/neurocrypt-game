@@ -209,7 +209,7 @@ const loadTextures = (baseTexture: Texture["baseTexture"], jsonData: any) => {
     return id;
 }
 
-function createText(x: number, y: number, text: string, style: TextStyle, container: Container) {
+function createText(x: number, y: number, text: string, container: Container | Sprite, style?: TextStyle) {
     let message = new Text(text, style);
 
     container.addChild(message);

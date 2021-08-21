@@ -1,6 +1,8 @@
 {
     "gameConfig": {
         "width": 512,
-        "height": 512
+        "height": 512,
+        "antialias": true,
+        "resolution": 1
     }
 }
