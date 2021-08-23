@@ -1,7 +1,11 @@
 import app from "./ts/game";
 import './style.css';
+import { $ } from "./ts/lib/dom";
+import { auth, provider } from "./ts/lib/firebase";
+import { setUser, store } from "./ts/redux";
 
-document.querySelector("#app")!.innerHTML = `
+
+$("#app")!.innerHTML = `
     <nav style="background-color: #444444; margin-bottom: 2rem;">
     <ul
     style="
@@ -33,4 +37,33 @@ document.querySelector("#app")!.innerHTML = `
     <div id="game"></div>
 `
 
-document.querySelector("#game")?.appendChild(app.view);
+$("#game")?.appendChild(app.view);
+
+$("#signInBtn")?.addEventListener("click", () => {
+    auth.signInWithPopup(provider)
+        .then(res => {
+            store.dispatch(setUser({ uid: res.user?.uid }));
+        })
+        .catch(console.error)
+});
+
+$("#signOutBtn")?.addEventListener("click", () => {
+    auth.signOut()
+        .then(() => {
+            store.dispatch(setUser({ uid: "" }));
+        });
+});
+
+auth.onAuthStateChanged(user => {
+    if (user) {
+        $<HTMLElement>("#signedIn")!.hidden = false;
+        $<HTMLElement>("#signedOut")!.hidden = true;
+        $<HTMLElement>("#userDetails")!.innerHTML = `<h3>Hello ${user.displayName}</h3>`;
+        store.dispatch(setUser({ uid: user.uid }));
+    } else {
+        $<HTMLElement>("#signedIn")!.hidden = true;
+        $<HTMLElement>("#signedOut")!.hidden = false;
+        $<HTMLElement>("#userDetails")!.innerHTML = ``;
+        store.dispatch(setUser({ uid: "" }));
+    }
+})
