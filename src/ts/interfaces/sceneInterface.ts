@@ -1,5 +1,5 @@
 import { Application, Container } from "pixi.js";
-import SceneManager from "./sceneManager";
+import SceneManager from "../lib/engine/sceneManager";
 
 export interface sceneInterface extends Container {
     app: Application | null;

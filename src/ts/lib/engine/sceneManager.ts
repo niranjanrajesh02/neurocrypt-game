@@ -1,5 +1,5 @@
 import { Application } from "pixi.js";
-import { sceneInterface } from "./sceneInterface";
+import { sceneInterface } from "../../interfaces/";
 
 export default class SceneManager {
 

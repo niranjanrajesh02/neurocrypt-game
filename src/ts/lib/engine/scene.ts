@@ -1,5 +1,5 @@
 import { Application, Container } from "pixi.js";
-import { sceneInterface } from "./sceneInterface";
+import { sceneInterface } from "../../interfaces/";
 import SceneManager from "./sceneManager";
 
 

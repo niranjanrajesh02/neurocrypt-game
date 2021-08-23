@@ -1,4 +1,5 @@
 import { Container, Graphics, Sprite, Spritesheet, TextStyle, Texture, Text } from "pixi.js";
+import { Box } from "../../interfaces";
 
 class keyboard {
 
@@ -61,17 +62,6 @@ const consoleKeys = () => {
         shift: new keyboard("Shift"),
         esc: new keyboard("Escape")
     }
-}
-
-
-/**
- * A 2D rectangle, consists of x co-ord, y co-ord, width and height
- */
-interface Box {
-    x: number
-    y: number
-    width: number
-    height: number
 }
 
 /**
@@ -231,5 +221,4 @@ export {
     createCircle,
     loadTextures,
     createText,
-    Box,
 }

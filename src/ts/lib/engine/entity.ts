@@ -1,5 +1,6 @@
 import { Sprite, Texture } from "pixi.js";
-import { Box, consoleKeys, contains } from "./helper";
+import { Box } from "../../interfaces";
+import { consoleKeys, contains } from "./helper";
 
 /**
  * Velocity of a body in 2D
