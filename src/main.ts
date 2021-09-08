@@ -6,7 +6,7 @@ import { setGameData, setUser, store } from "./ts/redux";
 
 
 $("#app")!.innerHTML = `
-<nav style="background-color: #444444; margin-bottom: 2rem;">
+    <nav style="background-color: #444444; margin-bottom: 2rem;">
     <ul
     style="
         font-size: large;

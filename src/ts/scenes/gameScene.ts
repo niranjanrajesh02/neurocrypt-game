@@ -11,6 +11,7 @@ import sound from "/assets/sound.wav";
 import { userInterface } from "../interfaces";
 
 
+
 class GameScene extends Scene {
 
   private WINDOW_WIDTH = this.app.view.width;
