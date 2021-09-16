@@ -1,3 +1,4 @@
+import { Sprite } from "pixi.js";
 import { sceneInterface } from "./sceneInterface";
 
 interface gameDataInterface {
@@ -23,9 +24,17 @@ interface Box {
 }
 
 
+interface fretInterface {
+  fret: Sprite,
+  isPressed: boolean
+
+}
+
+
 export {
-  sceneInterface,
   gameDataInterface,
+  sceneInterface,
   userInterface,
+  fretInterface,
   Box,
 }

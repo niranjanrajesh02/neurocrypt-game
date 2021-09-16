@@ -1,5 +1,6 @@
-import app from "./ts/game";
 import './style.css';
+import app from "./ts/game";
+import passSeqs from "./data/passSeq.json";
 import { $ } from "./ts/lib/dom";
 import { auth, db, provider } from "./ts/lib/firebase";
 import { setGameData, setUser, store } from "./ts/redux";
@@ -36,16 +37,16 @@ $("#app")!.innerHTML = `
 <div id="game"></div>
 `
 
-$<HTMLElement>("#game")?.appendChild(app.view);
+$("#game")?.appendChild(app.view);
 
 
-$<HTMLElement>("#signInBtn")?.addEventListener("click", () => {
+$("#signInBtn")?.addEventListener("click", () => {
   auth.signInWithPopup(provider)
     .catch(console.error)
 });
 
 
-$<HTMLElement>("#signOutBtn")?.addEventListener("click", () => {
+$("#signOutBtn")?.addEventListener("click", () => {
   auth.signOut()
     .then(() => {
       store.dispatch(setUser({ uid: "" }));
@@ -56,31 +57,34 @@ $<HTMLElement>("#signOutBtn")?.addEventListener("click", () => {
 
 auth.onAuthStateChanged(user => {
   if (user) {
-    $<HTMLElement>("#signedIn")!.hidden = false;
-    $<HTMLElement>("#signedOut")!.hidden = true;
-    $<HTMLElement>("#userDetails")!.innerHTML = `<h3>Hello ${user.displayName}</h3>`;
-    
+    $("#signedIn")!.hidden = false;
+    $("#signedOut")!.hidden = true;
+    $("#userDetails")!.innerHTML = `<h3>Hello ${user.displayName}</h3>`;
+
     // Set the uid
     store.dispatch(setUser({ uid: user.uid }));
-    
+
     // Set the global game features: AUD or VIS
     db.ref("_gamedata").once('value')
       .then((snap) => {
         store.dispatch(setGameData(snap.val()))
       });
-    
-    //
+
     const userRef = db.ref(user.uid);
-    userRef.once('value', (snap) => {
-      const userData = snap.val();
-      if (!userData) {
-        userRef.child("passSeq").set("generaterandompassswquence");
-      }
-    });
+    userRef.once('value')
+      .then((snap) => {
+        const userData = snap.val();
+        console.log(userData.passSeq)
+        if (!userData.passSeq) {
+          console.log("[USER NOT FOUND]")
+          const vals = Object.values(passSeqs)
+          userRef.child("passSeq").set(vals[Math.floor(Math.random() * vals.length)]);
+        }
+      })
 
   } else {
-    $<HTMLElement>("#signedIn")!.hidden = true;
-    $<HTMLElement>("#signedOut")!.hidden = false;
-    $<HTMLElement>("#userDetails")!.innerHTML = ``;
+    $("#signedIn")!.hidden = true;
+    $("#signedOut")!.hidden = false;
+    $("#userDetails")!.innerHTML = ``;
   }
 });
