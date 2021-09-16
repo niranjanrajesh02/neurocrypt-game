@@ -1,5 +1,5 @@
-import { Application, BitmapFont, SCALE_MODES, settings, utils } from "pixi.js";
 import { gameConfig } from "../data/config.json";
+import { Application, BitmapFont, SCALE_MODES, settings, utils } from "pixi.js";
 
 import SceneManager from "./lib/engine/sceneManager";
 import { StartScene, GameScene } from "./scenes";
@@ -19,7 +19,15 @@ BitmapFont.from("Defont", {
   fontSize: 24
 }, {
   // @ts-expect-error
-  chars: [['a', 'z'], ['A', 'Z'], ['0', '9'], " _-:"],
+  chars: [['a', 'z'], ['A', 'Z'], ['0', '9'], " _-:."],
+})
+
+BitmapFont.from("Defont_two", {
+  fill: "#ffffff",
+  fontSize: 64
+}, {
+  // @ts-expect-error
+  chars: [['a', 'z'], ['A', 'Z'], ['0', '9'], " _-:."],
 })
 
 app.loader
