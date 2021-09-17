@@ -1,12 +1,21 @@
-import Scene, { propType } from "../lib/engine/scene";
+import Note from "../lib/note";
+import oneSound from "../../../static/audio/one.mp3";
+import twoSound from "../../../static/audio/two.mp3";
+import threeSound from "../../../static/audio/three.mp3";
+import noiseSound from "../../../static/audio/noise.mp3";
 import SceneManager from "../lib/engine/sceneManager";
+import Scene, { propType } from "../lib/engine/scene";
 
 // import { db } from "../lib/firebase";
+import { Howl } from "howler";
 import { store } from "../redux";
 import { fretInterface, userInterface } from "../interfaces";
 import { collisionCheck, keyboard, randomInt } from "../lib/engine/helper";
 import { Application, BitmapText, Container, Graphics, Sprite, Texture } from "pixi.js";
-import Note from "../lib/note";
+
+interface propInterface {
+ app: Application; sceneManager: SceneManager; props?: propType; 
+}
 
 class GameScene extends Scene {
 
@@ -28,6 +37,26 @@ class GameScene extends Scene {
     fontSize: 24
   }
 
+  private NOISE_SOUND = new Howl({
+    src: [noiseSound],
+    loop: true,
+    volume: 0.10
+  });
+  private FRET_SOUND = {
+    one: new Howl({
+      src: [oneSound],
+      volume: 0.4,
+    }),
+    two: new Howl({
+      src: [twoSound],
+      volume: 0.4,
+    }),
+    three: new Howl({
+      src: [threeSound],
+      volume: 0.4,
+    }),
+  };
+
   private user: userInterface;
 
   private frets: fretInterface[];
@@ -40,7 +69,7 @@ class GameScene extends Scene {
   private hits = 0;
   private hitRate = 0;
 
-  constructor({ app, sceneManager, props }: { app: Application; sceneManager: SceneManager; props?: propType; }) {
+  constructor({ app, sceneManager, props }: propInterface) {
     super(app, sceneManager, props);
 
     this.gameSpace = new Container();
@@ -115,19 +144,21 @@ class GameScene extends Scene {
     this.scoreSpace.addChild(scoreBoardTitle);
 
     this.hitsText.position.set(scoreBg.width / 2 - this.hitsText.width / 2, 100)
-    this.scoreSpace.addChild(this.hitsText)
+    this.scoreSpace.addChild(this.hitsText);
 
     this.missesText.position.set(scoreBg.width / 2 - this.missesText.width / 2, 150);
-    this.scoreSpace.addChild(this.missesText)
+    this.scoreSpace.addChild(this.missesText);
 
     this.hitRateText.position.set(scoreBg.width / 2 - this.hitRateText.width / 2, 200);
-    this.scoreSpace.addChild(this.hitRateText)
+    this.scoreSpace.addChild(this.hitRateText);
 
     this.addChild(this.gameSpace);
     this.addChild(this.scoreSpace);
   }
 
   private _createFrets = () => {
+    const keyFonts = this.KEYS.split("").map(k => new BitmapText(k, this.FONT_SETTINGS));
+
     for (let i = 0; i < 7; i++) {
       const offsetX = 20;
       const gap = 80;
@@ -138,9 +169,12 @@ class GameScene extends Scene {
       fret.width = 60; fret.height = 20;
       fret.tint = 0x000000;
 
+      const keyFont = keyFonts[i > 2 ? i - 1 : i];
+      keyFont.position.set(offsetX + i * gap + fret.width / 2 + keyFont.width / 2, this.WINDOW_HEIGHT - 55);
+
       fret.position.set(offsetX + i * gap + (gap - fret.width) / 2, this.WINDOW_HEIGHT - 80);
       this.frets.push({ fret, isPressed: false });
-      this.gameSpace.addChild(fret);
+      this.gameSpace.addChild(fret, keyFont);
     }
   }
 
@@ -166,7 +200,7 @@ class GameScene extends Scene {
     }
   }
 
-  private _keyInputs = () => {
+  private _keyInputs = (): void => {
     for (const key of this.KEYS) {
       const key_instance = new keyboard(key);
       this.fretKeys.push(key_instance);
@@ -174,9 +208,9 @@ class GameScene extends Scene {
 
     this.fretKeys.forEach((key, i, arr) => {
       key.press = () => {
+
         let isOtherKeyDown = false;
-        arr
-          .filter((otherKey) => otherKey !== key)
+        arr.filter((otherKey) => otherKey !== key)
           .forEach((otherKey) => {
             if (otherKey.isDown) {
               isOtherKeyDown = true;
@@ -185,6 +219,31 @@ class GameScene extends Scene {
 
         if (!isOtherKeyDown) {
           this.frets[i].isPressed = true;
+
+          switch (i) {
+            case 0:
+              this.FRET_SOUND.one.play();
+              break;
+            case 1:
+              this.FRET_SOUND.two.play();
+              break;
+            case 2:
+              this.FRET_SOUND.three.play();
+              break;
+            case 3:
+              this.FRET_SOUND.two.play();
+              break;
+            case 4:
+              this.FRET_SOUND.three.play();
+              break;
+            case 5:
+              this.FRET_SOUND.one.play();
+              break;
+
+            default:
+              this.FRET_SOUND.one.play();
+              break;
+          }
         }
       }
 
@@ -195,13 +254,15 @@ class GameScene extends Scene {
 
     const escKey = new keyboard("Escape");
     escKey.release = () => {
+      this.NOISE_SOUND.stop();
+      this.isPaused = true;
       this._gameOver();
     }
 
     const spaceKey = new keyboard(" ");
     spaceKey.release = () => {
       this.isPaused = !this.isPaused;
-      console.log("[SPACE PRESSED]");
+      if (!this.NOISE_SOUND.playing()) this.NOISE_SOUND.play();
     }
   }
 
@@ -242,6 +303,7 @@ class GameScene extends Scene {
     if (!this.user.uid) this.scenes.start("start");
 
     if (!this.isPaused) {
+      // console.log(_delta)
       this.pauseSpace.visible = false;
 
       this.frets.forEach((fret) => {
@@ -253,7 +315,7 @@ class GameScene extends Scene {
       });
 
       this.notes.forEach((note, index) => {
-        note.move();
+        note.move(_delta);
 
         this.frets.forEach((fret) => {
           if (collisionCheck(fret, note)) {

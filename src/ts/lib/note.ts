@@ -19,8 +19,8 @@ class Note extends Graphics {
   }
 
 
-  public move() {
-    this.y += this.vy;
+  public move(delta: number) {
+    this.y += this.vy * delta;
   }
 }
 

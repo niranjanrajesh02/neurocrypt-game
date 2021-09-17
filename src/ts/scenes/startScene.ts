@@ -42,7 +42,7 @@ export default class StartScene extends Scene {
     this.addChild(this.button);
     this.addChild(this.title);
 
-    const buttonText = createText(0, 0, "Click", this.button);
+    const buttonText = createText(0, 0, "START", this.button);
     buttonText.anchor.set(0.5);
     buttonText.width = 15;
     buttonText.height = 15;
