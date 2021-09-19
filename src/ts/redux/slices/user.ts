@@ -9,7 +9,7 @@ interface initialStateInterface {
 const initialState: initialStateInterface = {
   value: {
     uid: "",
-    passSeq: "",
+    passSeq: [],
   }
 }
 

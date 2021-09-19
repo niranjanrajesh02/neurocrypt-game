@@ -61,26 +61,29 @@ auth.onAuthStateChanged(user => {
     $("#signedOut")!.hidden = true;
     $("#userDetails")!.innerHTML = `<h3>Hello ${user.displayName}</h3>`;
 
-    // Set the uid
-    store.dispatch(setUser({ uid: user.uid }));
-
     // Set the global game features: AUD or VIS
     db.ref("_gamedata").once('value')
       .then((snap) => {
         store.dispatch(setGameData(snap.val()))
       });
 
+
     const userRef = db.ref(user.uid);
     userRef.once('value')
       .then((snap) => {
         const userData = snap.val();
-        console.log(userData.passSeq)
+
         if (!userData.passSeq) {
-          console.log("[USER NOT FOUND]")
+          console.log("[PASS SEQUENCE NOT FOUND]")
           const vals = Object.values(passSeqs)
-          userRef.child("passSeq").set(vals[Math.floor(Math.random() * vals.length)]);
+          const pass = vals[Math.floor(Math.random() * vals.length)]
+          userRef.child("passSeq").set(pass);
+
+          store.dispatch(setUser({ uid: user.uid, passSeq: pass}));
+        } else {
+          store.dispatch(setUser({ uid: user.uid, passSeq: userData.passSeq}));
         }
-      })
+      });
 
   } else {
     $("#signedIn")!.hidden = true;

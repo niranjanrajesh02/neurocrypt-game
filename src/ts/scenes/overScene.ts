@@ -1,4 +1,4 @@
-import { Application } from "pixi.js";
+import { Application, Sprite } from "pixi.js";
 
 import Scene, { propType } from "../lib/engine/scene";
 import SceneManager from "../lib/engine/sceneManager";
@@ -6,17 +6,40 @@ import SceneManager from "../lib/engine/sceneManager";
 
 class OverScene extends Scene {
 
-    constructor(app: Application, sceneManager: SceneManager, props?: propType) {
-        super(app, sceneManager, props);
+  private WINDOW_WIDTH = this.app.view.width;       // 800
+  private WINDOW_HEIGHT = this.app.view.height;     // 600
+
+  private timer;
+  private hourGlass;
+  private BREAK_TIME = 20; // in seconds
+
+  constructor(app: Application, sceneManager: SceneManager, props?: propType) {
+    super(app, sceneManager, props);
+    this.timer = 0;
+    this.hourGlass = new Sprite( app.loader.resources["hour"].texture );
+  }
+
+  private _createTimer(): void {
+    this.hourGlass.scale.set(0.5);
+    this.hourGlass.anchor.set(0.5);
+    this.hourGlass.position.set(this.WINDOW_WIDTH / 2, this.WINDOW_HEIGHT / 3);
+    this.addChild(this.hourGlass);
+  }
+
+  init() {
+    this._createTimer();
+    setInterval(() => {
+      this.timer += 1;
+    }, 1000);
+
+  }
+
+  update(_delta: number): void {
+    if (this.timer >= this.BREAK_TIME) {
+      this.scenes.start("game");
     }
 
-    init() {
-
-    }
-
-    update(_delta: number) {
-
-    }
+  }
 }
 
 export default OverScene;

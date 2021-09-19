@@ -12,6 +12,7 @@ import { store } from "../redux";
 import { fretInterface, userInterface } from "../interfaces";
 import { collisionCheck, keyboard, randomInt } from "../lib/engine/helper";
 import { Application, BitmapText, Container, Graphics, Sprite, Texture } from "pixi.js";
+// import { subBlockGen } from "../lib/sequenceGen";
 
 interface propInterface {
  app: Application; sceneManager: SceneManager; props?: propType; 
@@ -27,6 +28,7 @@ class GameScene extends Scene {
   private missesText;
   private hitRateText;
 
+  private noteInterval!: NodeJS.Timer;
   private WINDOW_WIDTH = this.app.view.width;       // 800
   private WINDOW_HEIGHT = this.app.view.height;     // 600
   private GAME_WIDTH = this.WINDOW_WIDTH - 200;     // 600
@@ -36,7 +38,7 @@ class GameScene extends Scene {
     tint: 0x000000,
     fontSize: 24
   }
-
+  
   private NOISE_SOUND = new Howl({
     src: [noiseSound],
     loop: true,
@@ -61,15 +63,17 @@ class GameScene extends Scene {
 
   private frets: fretInterface[];
   private fretKeys: keyboard[];                    // Keyboard objects
+  private indexOfNote = 0;
   private isPaused: boolean = true;
 
   private notes: Note[];
+  private noteSequence: string[] = [];
   private noteSpeed = 8;
   private misses = 0;
   private hits = 0;
   private hitRate = 0;
 
-  constructor({ app, sceneManager, props }: propInterface) {
+  constructor(app: Application, sceneManager: SceneManager, props?: propInterface) {
     super(app, sceneManager, props);
 
     this.gameSpace = new Container();
@@ -79,6 +83,9 @@ class GameScene extends Scene {
     this.user = store.getState().user.value;
     store.subscribe(() => {
       this.user = store.getState().user.value;
+      // this.noteSequence = subBlockGen(this.user.passSeq);
+      this.noteSequence = this.user.passSeq;
+      console.log("note sequence", this.noteSequence);
     });
 
     this.hitsText = new BitmapText(`Hits - ${this.hits}`, this.FONT_SETTINGS);
@@ -88,12 +95,19 @@ class GameScene extends Scene {
     this.frets = [];
     this.fretKeys = [];
     this.notes = [];
+
+  }
+
+  private _keyToIndex = (key: string): number => {
+    const obj: {[index: string]: number} = { "S": 0, "D": 1, "F": 2, "J": 4, "K": 5, "L": 6 };
+
+    return obj[key.toUpperCase()]
   }
 
   private _gameOver = () => {
     console.log("[GAME OVER]");
 
-    this.scenes.start("start");
+    this.scenes.start("over");
   }
 
   private _setupPause = () => {
@@ -262,11 +276,14 @@ class GameScene extends Scene {
     const spaceKey = new keyboard(" ");
     spaceKey.release = () => {
       this.isPaused = !this.isPaused;
-      if (!this.NOISE_SOUND.playing()) this.NOISE_SOUND.play();
+      if (!this.NOISE_SOUND.playing())
+        this.NOISE_SOUND.play()
+      else
+        this.NOISE_SOUND.pause();
     }
   }
 
-  private _generateNote = (n: number) => {
+  private _generateNote(n: number): void {
     let noteOffsetX = 60,
       noteGapX = 80;
 
@@ -282,20 +299,42 @@ class GameScene extends Scene {
     this.gameSpace.addChild(note);
   }
 
-  private _killNotes = (note: Note, index: number) => {
+  private _genNoteSequence(): void {
+    console.log(this.indexOfNote, this.noteSequence.length - 1);
+    if (this.indexOfNote > this.noteSequence.length - 1) {
+      if (this.indexOfNote < (1 * 30) - 1) {
+        if (this.user.passSeq) this.noteSequence = [...this.noteSequence, ...this.user.passSeq ];
+      } else {
+        this.scenes.start("over");
+      }
+    } else {
+      if (this.noteSequence.length >= this.indexOfNote) {
+        this._generateNote(this._keyToIndex(this.noteSequence[this.indexOfNote]));
+        this.indexOfNote += 1;
+      }
+    }
+  }
+
+  private _killNotes(note: Note, index: number) {
     note.clear();
     this.notes.splice(index, 1);
   }
 
-  public init = () => {
+  public init() {
     this._setupScene();
     this._createFrets();
     this._keyInputs();
     this._createLines();
     this._setupPause();
+    this.KEYS.split("").forEach((key) => {
+      console.log(this._keyToIndex(key))
+    })
+    
+  }
 
-    setInterval(() => {
-      if (!this.isPaused) this._generateNote(-1);
+  public start() {
+    this.noteInterval = setInterval(() => {
+      if (!this.isPaused) this._genNoteSequence();
     }, 500)
   }
 
@@ -314,8 +353,10 @@ class GameScene extends Scene {
         }
       });
 
-      this.notes.forEach((note, index) => {
+      this.notes.forEach((note, index): void => {
         note.move(_delta);
+
+        note.induceEpilepsy();
 
         this.frets.forEach((fret) => {
           if (collisionCheck(fret, note)) {
@@ -328,9 +369,7 @@ class GameScene extends Scene {
             }
           }
         });
-      });
 
-      this.notes.forEach((note, index) => {
         if (note.y > this.WINDOW_HEIGHT + 50) {
           this._killNotes(note, index);
           this.misses += 1;
@@ -340,9 +379,16 @@ class GameScene extends Scene {
           this.hitRateText.text = `Hit Rate: ${this.hitRate.toFixed(2)}`
         }
       });
+
+      /* this.notes.forEach((note, index) => {
+      }); */
     } else {
       this.pauseSpace.visible = true;
     }
+  }
+
+  public stop() {
+    clearInterval(this.noteInterval);
   }
 }
 

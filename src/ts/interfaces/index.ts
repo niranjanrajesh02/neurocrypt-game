@@ -8,7 +8,7 @@ interface gameDataInterface {
 
 interface userInterface {
   uid: string,
-  passSeq: string,
+  passSeq: string[],
   [index: string]: any,
 }
 
