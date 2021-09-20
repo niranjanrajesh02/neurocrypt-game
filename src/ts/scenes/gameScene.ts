@@ -9,14 +9,13 @@ import Scene, { propType } from "../lib/engine/scene";
 import { db } from "../lib/firebase";
 import { Howl } from "howler";
 import { store } from "../redux";
-import { fretInterface, userInterface } from "../interfaces";
-import { collisionCheck, keyboard, randomInt } from "../lib/engine/helper";
-import { Application, BitmapText, Container, Graphics, Sprite, Texture } from "pixi.js";
 import { subBlockGen } from "../lib/sequenceGen";
-import { dataToSend } from "../interfaces/dataToSend";
+import { collisionCheck, keyboard, randomInt } from "../lib/engine/helper";
+import { dataToSend, fretInterface, userInterface } from "../interfaces";
+import { Application, BitmapText, Container, Graphics, Sprite, Texture } from "pixi.js";
 
 interface propInterface {
- app: Application; sceneManager: SceneManager; props?: propType; 
+  app: Application; sceneManager: SceneManager; props?: propType;
 }
 
 class GameScene extends Scene {
@@ -38,15 +37,15 @@ class GameScene extends Scene {
     tint: 0x000000,
     fontSize: 24
   }
-  
+
   private NOISE_SOUND = new Howl({
     src: [noiseSound],
     loop: true,
-    volume: 0.10
+    volume: 0.30
   });
   private FRET_SOUND = {
-    one: new Howl({   src: [oneSound],   volume: 0.4 }),
-    two: new Howl({   src: [twoSound],   volume: 0.4 }),
+    one: new Howl({ src: [oneSound], volume: 0.4 }),
+    two: new Howl({ src: [twoSound], volume: 0.4 }),
     three: new Howl({ src: [threeSound], volume: 0.4 }),
   };
   private TOTAL_GAMES = 2;
@@ -58,11 +57,16 @@ class GameScene extends Scene {
   private frets: fretInterface[];
   private fretKeys: keyboard[];                    // Keyboard objects
   private isPaused: boolean = true;
+
+  private noteTimer = 0;
+  private noteGenerateLag = 30;
   private noteSpeed = 8;
 
+  private noise_vol = 0.3;
 
   private notes: Note[];
   private indexOfNote = 0;
+  private prevIndexOfNote = 0;
   private noteSequence: string[] = [];
 
   private subBlockMetrics = {
@@ -121,7 +125,7 @@ class GameScene extends Scene {
   }
 
   private _keyToIndex = (key: string): number => {
-    const obj: {[index: string]: number} = { "S": 0, "D": 1, "F": 2, "J": 4, "K": 5, "L": 6 };
+    const obj: { [index: string]: number } = { "S": 0, "D": 1, "F": 2, "J": 4, "K": 5, "L": 6 };
 
     return obj[key.toUpperCase()]
   }
@@ -130,7 +134,7 @@ class GameScene extends Scene {
     console.log("[BLOCK OVER]");
     this.dataToSend = {
       ...this.dataToSend,
-      block: [ 
+      block: [
         ...this.dataToSend.block,
         {
           gameNunber: this.gameNunber,
@@ -152,7 +156,7 @@ class GameScene extends Scene {
       hits: this.hits,
       misses: this.misses,
       hitRate: this.hitRate,
-      block: [ 
+      block: [
         ...this.dataToSend.block,
         {
           gameNunber: this.gameNunber,
@@ -165,6 +169,7 @@ class GameScene extends Scene {
 
     const ref = db.ref(this.user.uid);
     ref.push(this.dataToSend).then(() => console.log("[DATA PUSHED]"));
+    ref.child("noteSpeed").set(this.noteSpeed);
 
     this.scenes.start("start");
   }
@@ -364,7 +369,7 @@ class GameScene extends Scene {
     if (this.indexOfNote > this.noteSequence.length - 1) {
       if ((this.indexOfNote < 1 * 108 - 1) && (this.user.passSeq)) {
         const subBlock = subBlockGen(this.user.passSeq);
-        this.noteSequence = [...this.noteSequence, ...subBlock ];
+        this.noteSequence = [...this.noteSequence, ...subBlock];
       } else {
         if (!this.notes.length) {
           if (this.TOTAL_GAMES - this.gameNunber) {
@@ -389,6 +394,54 @@ class GameScene extends Scene {
     this.notes.splice(index, 1);
   }
 
+  private _noiseControl(): void {
+    if (this.hitRate < 0.69) {
+      this.noise_vol += 0.05;
+    } else if (this.hitRate > 0.71) {
+      this.noise_vol -= 0.05;
+    }
+
+    if (this.noise_vol < 0.1) {
+      this.noise_vol = 0.1
+    } else if (this.noise_vol > 0.6) {
+      this.noise_vol = 0.6;
+    }
+
+    this.NOISE_SOUND.volume(this.noise_vol);
+  }
+
+  private _noteSpeedControl() {
+    
+    const alpha = 10;
+    const beta = 25;
+    const desiredHitRate = 0.7;
+
+    this.noteSpeed = Math.floor(this.noteSpeed - (desiredHitRate - this.hitRate) * alpha);
+    this.noteGenerateLag = Math.floor(this.noteGenerateLag + (desiredHitRate - this.hitRate) * beta);
+
+    if (this.noteSpeed < 3) {
+      this.noteSpeed = 3;
+    } else if (this.noteSpeed > 12) {
+      this.noteSpeed = 12;
+    }
+
+    if (this.noteGenerateLag > 55) {
+      this.noteGenerateLag = 55;
+    } else if (this.noteGenerateLag < 20) {
+      this.noteGenerateLag = 20;
+    }
+  }
+
+  private _isIthBlock(i: number, callback: () => void) {
+    if ((this.indexOfNote !== this.prevIndexOfNote) &&
+        (this.indexOfNote % i === 0) && 
+        (this.indexOfNote !== 0)) {
+      callback();
+    }
+
+    this.prevIndexOfNote = this.indexOfNote;
+  }
+
   public init() {
     this._setupScene();
     this._createFrets();
@@ -397,11 +450,11 @@ class GameScene extends Scene {
     this._setupPause();
   }
 
-  public start() {
+  public start(): void {
     this.gameNunber += 1;
-    this.noteInterval = setInterval(() => {
+    /* this.noteInterval = setInterval(() => {
       if (!this.isPaused) this._genNoteSequence();
-    }, 500);
+    }, 500); */
 
     console.log("Game Number", this.gameNunber);
   }
@@ -412,6 +465,17 @@ class GameScene extends Scene {
     if (!this.isPaused) {
       // console.log(_delta)
       this.pauseSpace.visible = false;
+
+      this.noteTimer = this.noteTimer > 0 ? --this.noteTimer : this.noteGenerateLag;
+      if (this.noteTimer === 0) {
+        this._genNoteSequence()
+      }
+
+      this._isIthBlock(7, () => {
+        this._noiseControl();
+        this._noteSpeedControl();
+        console.log("[CALLBACK SUCCESS]")
+      })
 
       this.frets.forEach((fret) => {
         if (fret.isPressed) {
@@ -495,6 +559,7 @@ class GameScene extends Scene {
 
     this.notes = []
     this.indexOfNote = 0;
+    this.prevIndexOfNote = 0;
     this.noteSequence = []
 
     this.subBlockMetrics = {

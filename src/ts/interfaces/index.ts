@@ -1,4 +1,5 @@
 import { Sprite } from "pixi.js";
+import { dataToSend } from "./dataToSend";
 import { sceneInterface } from "./sceneInterface";
 
 interface gameDataInterface {
@@ -32,6 +33,7 @@ interface fretInterface {
 
 
 export {
+  dataToSend,
   gameDataInterface,
   sceneInterface,
   userInterface,
