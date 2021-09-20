@@ -44,7 +44,7 @@ function setup() {
   scenes.add("game",  new GameScene(app, scenes));
   scenes.add("over",  new OverScene(app, scenes));
 
-  scenes.start("over");
+  scenes.start("start");
 }
 
 export default app;

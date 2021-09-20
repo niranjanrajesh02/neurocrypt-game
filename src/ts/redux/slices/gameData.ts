@@ -2,7 +2,6 @@ import { createSlice } from "@reduxjs/toolkit";
 import { gameDataInterface } from "../../interfaces";
 
 
-
 interface initialStateInterface {
   value: gameDataInterface
 }

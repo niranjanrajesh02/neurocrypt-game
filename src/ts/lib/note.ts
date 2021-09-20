@@ -9,8 +9,9 @@ class Note extends Graphics {
   public colorTimer;
   public shouldColorChange;
   public colorChangeTime;
+  public isPass?: boolean;
 
-  constructor(vx: number, vy: number, xPos: number) {
+  constructor(vx: number, vy: number, xPos: number, isPass?: boolean) {
     super();
     this.vx = vx;
     this.vy = vy;
@@ -24,6 +25,8 @@ class Note extends Graphics {
     this.shouldColorChange = false;
     this.colorChangeTime = 3;
     this.colorTimer = 1;
+
+    this.isPass = isPass ?? isPass;
   }
 
 

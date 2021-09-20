@@ -1,6 +1,6 @@
 import { Container, Graphics, Sprite, Spritesheet, TextStyle, Texture, Text } from "pixi.js";
 import { Box, fretInterface } from "../../interfaces";
-import Note from "../note";
+import Note from "../note";
 
 class keyboard {
 
@@ -10,6 +10,7 @@ class keyboard {
   public isUp: boolean;
   public press?: () => void;
   public release?: () => void;
+
 
   constructor(keyCode: string) {
     this.code = keyCode;
@@ -43,6 +44,11 @@ class keyboard {
     window.addEventListener("keydown", this.downHandler.bind(this), false);
     window.addEventListener("keyup", this.upHandler.bind(this), false);
   }
+
+  public removeListners = () => {
+    window.removeEventListener("keydown", this.downHandler.bind(this));
+    window.removeEventListener("keyup", this.upHandler.bind(this));
+  } 
 }
 
 /**

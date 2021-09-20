@@ -56,12 +56,7 @@ export default class StartScene extends Scene {
     });
   }
 
-  public start(): void {
-    setTimeout(() => {
-      this.scenes.start("game");
-    }, 500)
-
-  }
+  public start(): void {}
 
   public update(_delta: number): void {
 

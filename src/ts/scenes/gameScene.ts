@@ -6,13 +6,14 @@ import noiseSound from "../../../static/audio/noise.mp3";
 import SceneManager from "../lib/engine/sceneManager";
 import Scene, { propType } from "../lib/engine/scene";
 
-// import { db } from "../lib/firebase";
+import { db } from "../lib/firebase";
 import { Howl } from "howler";
 import { store } from "../redux";
 import { fretInterface, userInterface } from "../interfaces";
 import { collisionCheck, keyboard, randomInt } from "../lib/engine/helper";
 import { Application, BitmapText, Container, Graphics, Sprite, Texture } from "pixi.js";
-// import { subBlockGen } from "../lib/sequenceGen";
+import { subBlockGen } from "../lib/sequenceGen";
+import { dataToSend } from "../interfaces/dataToSend";
 
 interface propInterface {
  app: Application; sceneManager: SceneManager; props?: propType; 
@@ -28,7 +29,6 @@ class GameScene extends Scene {
   private missesText;
   private hitRateText;
 
-  private noteInterval!: NodeJS.Timer;
   private WINDOW_WIDTH = this.app.view.width;       // 800
   private WINDOW_HEIGHT = this.app.view.height;     // 600
   private GAME_WIDTH = this.WINDOW_WIDTH - 200;     // 600
@@ -45,33 +45,49 @@ class GameScene extends Scene {
     volume: 0.10
   });
   private FRET_SOUND = {
-    one: new Howl({
-      src: [oneSound],
-      volume: 0.4,
-    }),
-    two: new Howl({
-      src: [twoSound],
-      volume: 0.4,
-    }),
-    three: new Howl({
-      src: [threeSound],
-      volume: 0.4,
-    }),
+    one: new Howl({   src: [oneSound],   volume: 0.4 }),
+    two: new Howl({   src: [twoSound],   volume: 0.4 }),
+    three: new Howl({ src: [threeSound], volume: 0.4 }),
   };
+  private TOTAL_GAMES = 2;
+  private gameNunber = 0;
 
   private user: userInterface;
 
+  private noteInterval!: NodeJS.Timer;
   private frets: fretInterface[];
   private fretKeys: keyboard[];                    // Keyboard objects
-  private indexOfNote = 0;
   private isPaused: boolean = true;
+  private noteSpeed = 8;
+
 
   private notes: Note[];
+  private indexOfNote = 0;
   private noteSequence: string[] = [];
-  private noteSpeed = 8;
+
+  private subBlockMetrics = {
+    misses: 0,
+    hits: 0,
+    hitRate: 0
+  }
+
+  private passMetrics = {
+    misses: 0,
+    hits: 0,
+    hitRate: 0
+  }
+
+  private noiseMetrics = {
+    misses: 0,
+    hits: 0,
+    hitRate: 0
+  }
+
   private misses = 0;
   private hits = 0;
   private hitRate = 0;
+
+  private dataToSend: dataToSend;
 
   constructor(app: Application, sceneManager: SceneManager, props?: propInterface) {
     super(app, sceneManager, props);
@@ -83,9 +99,8 @@ class GameScene extends Scene {
     this.user = store.getState().user.value;
     store.subscribe(() => {
       this.user = store.getState().user.value;
-      // this.noteSequence = subBlockGen(this.user.passSeq);
-      this.noteSequence = this.user.passSeq;
-      console.log("note sequence", this.noteSequence);
+      const subBlock = subBlockGen(this.user.passSeq);
+      this.noteSequence = subBlock;
     });
 
     this.hitsText = new BitmapText(`Hits - ${this.hits}`, this.FONT_SETTINGS);
@@ -96,6 +111,13 @@ class GameScene extends Scene {
     this.fretKeys = [];
     this.notes = [];
 
+    this.dataToSend = {
+      hits: 0,
+      misses: 0,
+      hitRate: 0,
+      block: [],
+      session: "g0-training",
+    }
   }
 
   private _keyToIndex = (key: string): number => {
@@ -104,10 +126,47 @@ class GameScene extends Scene {
     return obj[key.toUpperCase()]
   }
 
-  private _gameOver = () => {
-    console.log("[GAME OVER]");
+  private _blockOver = () => {
+    console.log("[BLOCK OVER]");
+    this.dataToSend = {
+      ...this.dataToSend,
+      block: [ 
+        ...this.dataToSend.block,
+        {
+          gameNunber: this.gameNunber,
+          noiseMetrics: this.noiseMetrics,
+          subBlockMetrics: this.subBlockMetrics,
+          passMetrics: this.passMetrics
+        }
+      ]
+    }
 
     this.scenes.start("over");
+  }
+
+  private _gameOver(): void {
+    console.log("[GAME OVER]");
+
+    this.dataToSend = {
+      ...this.dataToSend,
+      hits: this.hits,
+      misses: this.misses,
+      hitRate: this.hitRate,
+      block: [ 
+        ...this.dataToSend.block,
+        {
+          gameNunber: this.gameNunber,
+          noiseMetrics: this.noiseMetrics,
+          subBlockMetrics: this.subBlockMetrics,
+          passMetrics: this.passMetrics
+        }
+      ]
+    }
+
+    const ref = db.ref(this.user.uid);
+    ref.push(this.dataToSend).then(() => console.log("[DATA PUSHED]"));
+
+    this.scenes.start("start");
   }
 
   private _setupPause = () => {
@@ -270,7 +329,7 @@ class GameScene extends Scene {
     escKey.release = () => {
       this.NOISE_SOUND.stop();
       this.isPaused = true;
-      this._gameOver();
+      this._blockOver();
     }
 
     const spaceKey = new keyboard(" ");
@@ -283,7 +342,7 @@ class GameScene extends Scene {
     }
   }
 
-  private _generateNote(n: number): void {
+  private _generateNote(n: number, isPass?: boolean): void {
     let noteOffsetX = 60,
       noteGapX = 80;
 
@@ -294,22 +353,32 @@ class GameScene extends Scene {
       if (x !== 3) break;
     }
 
-    const note = new Note(0, this.noteSpeed, noteOffsetX + x * noteGapX);
+    const note = new Note(0, this.noteSpeed, noteOffsetX + x * noteGapX, isPass);
     this.notes.push(note);
     this.gameSpace.addChild(note);
   }
 
   private _genNoteSequence(): void {
     console.log(this.indexOfNote, this.noteSequence.length - 1);
+
     if (this.indexOfNote > this.noteSequence.length - 1) {
-      if (this.indexOfNote < (1 * 30) - 1) {
-        if (this.user.passSeq) this.noteSequence = [...this.noteSequence, ...this.user.passSeq ];
+      if ((this.indexOfNote < 1 * 108 - 1) && (this.user.passSeq)) {
+        const subBlock = subBlockGen(this.user.passSeq);
+        this.noteSequence = [...this.noteSequence, ...subBlock ];
       } else {
-        this.scenes.start("over");
+        if (!this.notes.length) {
+          if (this.TOTAL_GAMES - this.gameNunber) {
+            this._blockOver();
+          } else {
+            this._gameOver();
+          }
+        }
       }
     } else {
       if (this.noteSequence.length >= this.indexOfNote) {
-        this._generateNote(this._keyToIndex(this.noteSequence[this.indexOfNote]));
+        const currentNote = this.noteSequence[this.indexOfNote]
+        this._generateNote(this._keyToIndex(currentNote), currentNote === currentNote.toUpperCase());
+
         this.indexOfNote += 1;
       }
     }
@@ -326,19 +395,18 @@ class GameScene extends Scene {
     this._keyInputs();
     this._createLines();
     this._setupPause();
-    this.KEYS.split("").forEach((key) => {
-      console.log(this._keyToIndex(key))
-    })
-    
   }
 
   public start() {
+    this.gameNunber += 1;
     this.noteInterval = setInterval(() => {
       if (!this.isPaused) this._genNoteSequence();
-    }, 500)
+    }, 500);
+
+    console.log("Game Number", this.gameNunber);
   }
 
-  public update(_delta: number) {
+  public update(_delta: number): void {
     if (!this.user.uid) this.scenes.start("start");
 
     if (!this.isPaused) {
@@ -355,40 +423,97 @@ class GameScene extends Scene {
 
       this.notes.forEach((note, index): void => {
         note.move(_delta);
-
         note.induceEpilepsy();
 
         this.frets.forEach((fret) => {
           if (collisionCheck(fret, note)) {
             if (fret.isPressed) {
               this._killNotes(note, index);
+
               this.hits += 1;
+              this.subBlockMetrics.hits += 1;
+
               this.hitRate = this.hits / (this.misses + this.hits)
+              this.subBlockMetrics.hitRate = this.subBlockMetrics.hits / (this.subBlockMetrics.misses + this.subBlockMetrics.hits);
+
               this.hitsText.text = `Hits: ${this.hits}`
               this.hitRateText.text = `Hit Rate: ${this.hitRate.toFixed(2)}`
+
+              if (note.isPass) {
+                this.passMetrics.hits += 1;
+                this.passMetrics.hitRate = this.passMetrics.hits / (this.passMetrics.misses + this.passMetrics.hits);
+              } else {
+                this.noiseMetrics.hits += 1;
+                this.noiseMetrics.hitRate = this.noiseMetrics.hits / (this.noiseMetrics.misses + this.noiseMetrics.hits);
+              }
+
             }
           }
         });
 
         if (note.y > this.WINDOW_HEIGHT + 50) {
           this._killNotes(note, index);
+
           this.misses += 1;
-          this.missesText.text = `Misses: ${this.misses}`
+          this.subBlockMetrics.misses += 1;
+
           this.hitRate = this.hits / (this.misses + this.hits)
+          this.subBlockMetrics.hitRate = this.subBlockMetrics.hits / (this.subBlockMetrics.misses + this.subBlockMetrics.hits);
+
+          if (note.isPass) {
+            this.passMetrics.misses += 1;
+            this.passMetrics.hitRate = this.passMetrics.hits / (this.passMetrics.misses + this.passMetrics.hits);
+          } else {
+            this.noiseMetrics.misses += 1;
+            this.noiseMetrics.hitRate = this.noiseMetrics.hits / (this.noiseMetrics.misses + this.noiseMetrics.hits);
+          }
+
+
           this.hitsText.text = `Hits: ${this.hits}`
+          this.missesText.text = `Misses: ${this.misses}`
           this.hitRateText.text = `Hit Rate: ${this.hitRate.toFixed(2)}`
         }
       });
 
-      /* this.notes.forEach((note, index) => {
-      }); */
     } else {
       this.pauseSpace.visible = true;
     }
   }
 
-  public stop() {
+  public stop(): void {
     clearInterval(this.noteInterval);
+
+    this.fretKeys.forEach((key) => {
+      key.removeListners();
+    })
+
+    this.isPaused = true;
+
+    console.table(this.passMetrics);
+    console.table(this.noiseMetrics);
+    console.table(this.subBlockMetrics);
+
+    this.notes = []
+    this.indexOfNote = 0;
+    this.noteSequence = []
+
+    this.subBlockMetrics = {
+      misses: 0,
+      hits: 0,
+      hitRate: 0
+    }
+
+    this.noiseMetrics = {
+      misses: 0,
+      hits: 0,
+      hitRate: 0
+    }
+
+    this.passMetrics = {
+      misses: 0,
+      hits: 0,
+      hitRate: 0
+    }
   }
 }
 
