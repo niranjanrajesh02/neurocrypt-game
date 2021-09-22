@@ -7,7 +7,7 @@ import { setGameData, setUser, store } from "./ts/redux";
 
 
 $("#app")!.innerHTML = `
-    <nav style="background-color: #444444; margin-bottom: 2rem;">
+  <nav style="background-color: #444444; margin-bottom: 2rem;">
     <ul
     style="
         font-size: large;
@@ -16,24 +16,24 @@ $("#app")!.innerHTML = `
         display: flex;
         justify-content: space-between;
     ">
-        <li style="padding: 1rem">SASTA GUITAR HERO PRO</li>
-        
-        <li style="padding: 1rem; display: flex">
-            <section id="signedOut">
-                <div style="display: flex; gap: 2rem; align-items: flex-start">
-                    <button id="signInBtn">login</button>
-                </div>
-            </section>
+      <li style="padding: 1rem">SASTA GUITAR HERO PRO</li>
+      
+      <li style="padding: 1rem; display: flex">
+        <section id="signedOut">
+          <div style="display: flex; gap: 2rem; align-items: flex-start">
+            <button id="signInBtn">login</button>
+          </div>
+        </section>
 
-            <section id="signedIn" hidden="true">
-                <div style="display: flex; gap: 2rem; align-items: flex-start">
-                    <div id="userDetails"></div>
-                    <button id="signOutBtn">logout</button>
-                </div>
-            </section>
-        </li>
+        <section id="signedIn" hidden="true">
+          <div style="display: flex; gap: 2rem; align-items: flex-start">
+            <div id="userDetails"></div>
+            <button id="signOutBtn">logout</button>
+          </div>
+        </section>
+      </li>
     </ul>
-</nav>
+  </nav>
 <div id="game"></div>
 `
 
@@ -73,15 +73,15 @@ auth.onAuthStateChanged(user => {
       .then((snap) => {
         const userData = snap.val();
 
-        if (!userData.passSeq) {
+        if (!userData) {
           console.log("[PASS SEQUENCE NOT FOUND]")
           const vals = Object.values(passSeqs)
           const pass = vals[Math.floor(Math.random() * vals.length)]
           userRef.child("passSeq").set(pass);
 
-          store.dispatch(setUser({ uid: user.uid, passSeq: pass}));
+          store.dispatch(setUser({ uid: user.uid, passSeq: pass }));
         } else {
-          store.dispatch(setUser({ uid: user.uid, passSeq: userData.passSeq}));
+          store.dispatch(setUser({ uid: user.uid, passSeq: userData.passSeq }));
         }
       });
 

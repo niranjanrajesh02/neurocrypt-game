@@ -41,7 +41,7 @@ class GameScene extends Scene {
   private NOISE_SOUND = new Howl({
     src: [noiseSound],
     loop: true,
-    volume: 0.30
+    volume: 0.20
   });
   private FRET_SOUND = {
     one: new Howl({ src: [oneSound], volume: 0.4 }),
@@ -238,7 +238,7 @@ class GameScene extends Scene {
     const keyFonts = this.KEYS.split("").map(k => new BitmapText(k, this.FONT_SETTINGS));
 
     for (let i = 0; i < 7; i++) {
-      const offsetX = 20;
+      const offsetX = 20 + 15;
       const gap = 80;
 
       if (i === 3) continue;
@@ -258,11 +258,11 @@ class GameScene extends Scene {
 
   private _createLines = () => {
     for (let i = 0; i < 8; i++) {
-      const offsetX = 20;
+      const offsetX = 20 + 15;
       const gap = 80;
 
       const line = new Graphics();
-      line.lineStyle(4, 0x000000, 1);
+      line.lineStyle(12, 0x000000, 1);
 
       line.moveTo(offsetX + i * gap, 100);
       line.lineTo(offsetX + i * gap, this.WINDOW_HEIGHT - 40);
@@ -348,7 +348,7 @@ class GameScene extends Scene {
   }
 
   private _generateNote(n: number, isPass?: boolean): void {
-    let noteOffsetX = 60,
+    let noteOffsetX = 60 + 15,
       noteGapX = 80;
 
     let x;
@@ -367,7 +367,7 @@ class GameScene extends Scene {
     console.log(this.indexOfNote, this.noteSequence.length - 1);
 
     if (this.indexOfNote > this.noteSequence.length - 1) {
-      if ((this.indexOfNote < 1 * 108 - 1) && (this.user.passSeq)) {
+      if ((this.indexOfNote < 5 * 108 - 1) && (this.user.passSeq)) {
         const subBlock = subBlockGen(this.user.passSeq);
         this.noteSequence = [...this.noteSequence, ...subBlock];
       } else {
@@ -401,10 +401,10 @@ class GameScene extends Scene {
       this.noise_vol -= 0.05;
     }
 
-    if (this.noise_vol < 0.1) {
-      this.noise_vol = 0.1
+    if (this.noise_vol < 0.05) {
+      this.noise_vol = 0.05
     } else if (this.noise_vol > 0.6) {
-      this.noise_vol = 0.6;
+      this.noise_vol = 0.5;
     }
 
     this.NOISE_SOUND.volume(this.noise_vol);
@@ -471,7 +471,7 @@ class GameScene extends Scene {
         this._genNoteSequence()
       }
 
-      this._isIthBlock(7, () => {
+      this._isIthBlock(20, () => {
         this._noiseControl();
         this._noteSpeedControl();
         console.log("[CALLBACK SUCCESS]")
