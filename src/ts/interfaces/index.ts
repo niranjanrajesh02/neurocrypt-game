@@ -4,9 +4,6 @@ import { sceneInterface } from "./sceneInterface";
 
 interface gameDataInterface {
   gameVer: number,
-  TYPE: "AUTH" | "TRAIN",
-  AUD: boolean,
-  VIS: boolean,
   [index: string]: any,
 }
 
