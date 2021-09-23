@@ -9,9 +9,9 @@ import Scene, { propType } from "../lib/engine/scene";
 import { db } from "../lib/firebase";
 import { Howl } from "howler";
 import { store } from "../redux";
-import { subBlockGen } from "../lib/sequenceGen";
+import { subBlockGen, authBlockGen } from "../lib/sequenceGen";
 import { collisionCheck, keyboard, randomInt } from "../lib/engine/helper";
-import { dataToSend, fretInterface, userInterface } from "../interfaces";
+import { dataToSend, fretInterface, gameDataInterface, userInterface } from "../interfaces";
 import { Application, BitmapText, Container, Graphics, Sprite, Texture } from "pixi.js";
 
 interface propInterface {
@@ -48,8 +48,10 @@ class GameScene extends Scene {
     two: new Howl({ src: [twoSound], volume: 0.4 }),
     three: new Howl({ src: [threeSound], volume: 0.4 }),
   };
-  private TOTAL_GAMES = 2;
+  private GAME_DATA!: gameDataInterface;
+  private TOTAL_GAMES!: number;
   private gameNunber = 0;
+
 
   private user: userInterface;
 
@@ -103,9 +105,13 @@ class GameScene extends Scene {
     this.user = store.getState().user.value;
     store.subscribe(() => {
       this.user = store.getState().user.value;
-      const subBlock = subBlockGen(this.user.passSeq);
-      this.noteSequence = subBlock;
+      this.GAME_DATA = store.getState().gameData.value;
+      console.log(this.GAME_DATA.TYPE === 'TRAIN' ? '[TRAINING MODE]' : '[AUTHENTICATION MODE]')
+
+      this.noteSequence = this.GAME_DATA.TYPE === "TRAIN" ? subBlockGen(this.user.passSeq) : authBlockGen(this.user.passSeq);
+      this.TOTAL_GAMES = this.GAME_DATA.TYPE === "TRAIN" ? 7 : 1;
     });
+
 
     this.hitsText = new BitmapText(`Hits - ${this.hits}`, this.FONT_SETTINGS);
     this.missesText = new BitmapText(`Misses - ${this.misses}`, this.FONT_SETTINGS);
@@ -557,6 +563,9 @@ class GameScene extends Scene {
     console.table(this.noiseMetrics);
     console.table(this.subBlockMetrics);
 
+    this.notes.forEach((note) => {
+      note.clear();
+    });
     this.notes = []
     this.indexOfNote = 0;
     this.prevIndexOfNote = 0;

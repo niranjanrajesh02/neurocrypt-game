@@ -1,4 +1,5 @@
 import { randomInt } from "./engine/helper";
+import { k0, k1, k2 } from "../../data/passSeq.json";
 
 const genRandomKeys = (length: number): string[] => {
   const keys = "sdfjkl";
@@ -27,6 +28,8 @@ const genRandomKeys = (length: number): string[] => {
 
 
 export const subBlockGen = (passSeq: string[]): string[] => {
+  console.log("[GENERATING TRAINING BLOCK...]")
+
   let randomKeysCount = 18;
   const subBlock: string[] = [];
   const indexOfPasses: number[] = [];
@@ -51,4 +54,31 @@ export const subBlockGen = (passSeq: string[]): string[] => {
   console.log(indexOfPasses, subBlock);
 
   return subBlock;
+}
+
+export const authBlockGen = (passSeq: string[]): string[] => {
+  console.log("[GENERATING AUTH BLOCK...]")
+  const authBlock: string[] = [];
+
+  const init = [0, 1, 2, 0, 1, 2];
+  const pi: number[] = [];
+
+  const { 0: k_one, 1: k_two } = [k0, k1, k2].filter(arr => arr[0] !== passSeq[0]);
+  const MAP = [
+    passSeq,
+    k_one.map((k) => k.toLowerCase()),
+    k_two.map((k) => k.toLowerCase())
+  ]
+
+  for (let i = 0; i < 6; i++) {
+    const randIndex = Math.floor(Math.random() * init.length);
+    pi.push(init[randIndex]);
+    init.slice(randIndex, 1);
+  }
+
+  pi.forEach((e) => {
+    authBlock.push(...MAP[e])
+  })
+
+  return authBlock;
 }

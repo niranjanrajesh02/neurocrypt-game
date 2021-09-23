@@ -65,6 +65,7 @@ auth.onAuthStateChanged(user => {
     db.ref("_gamedata").once('value')
       .then((snap) => {
         store.dispatch(setGameData(snap.val()))
+        console.log(store.getState().gameData.value);
       });
 
 
@@ -74,6 +75,11 @@ auth.onAuthStateChanged(user => {
         const userData = snap.val();
 
         if (!userData) {
+          if (store.getState().gameData.value.TYPE === "AUTH") {
+            alert("Please contact the guys making the game, something is not right.")
+            return;
+          }
+
           console.log("[PASS SEQUENCE NOT FOUND]")
           const vals = Object.values(passSeqs)
           const pass = vals[Math.floor(Math.random() * vals.length)]
