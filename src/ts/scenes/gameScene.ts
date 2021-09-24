@@ -105,8 +105,9 @@ class GameScene extends Scene {
     this.user = store.getState().user.value;
     store.subscribe(() => {
       this.user = store.getState().user.value;
+      console.log(this.user);
       this.GAME_DATA = store.getState().gameData.value;
-      console.log(this.GAME_DATA.TYPE === 'TRAIN' ? '[TRAINING MODE]' : '[AUTHENTICATION MODE]')
+      console.log(this.GAME_DATA.TYPE === 'TRAIN' ? '[TRAINING MODE]' : '[AUTHENTICATION MODE]');
 
       this.noteSequence = this.GAME_DATA.TYPE === "TRAIN" ? subBlockGen(this.user.passSeq) : authBlockGen(this.user.passSeq);
       this.TOTAL_GAMES = this.GAME_DATA.TYPE === "TRAIN" ? 7 : 1;
@@ -126,7 +127,7 @@ class GameScene extends Scene {
       misses: 0,
       hitRate: 0,
       block: [],
-      session: "g0-training",
+      session: "",
     }
   }
 
@@ -158,10 +159,10 @@ class GameScene extends Scene {
     console.log("[GAME OVER]");
 
     this.dataToSend = {
-      ...this.dataToSend,
       hits: this.hits,
       misses: this.misses,
       hitRate: this.hitRate,
+      session: this.GAME_DATA.SESSION,
       block: [
         ...this.dataToSend.block,
         {
@@ -176,8 +177,9 @@ class GameScene extends Scene {
     const ref = db.ref(this.user.uid);
     ref.push(this.dataToSend).then(() => console.log("[DATA PUSHED]"));
     ref.child("noteSpeed").set(this.noteSpeed);
+    ref.child("noteGenerateLag").set(this.noteGenerateLag);
 
-    this.scenes.start("start");
+    this.scenes.start("finish");
   }
 
   private _setupPause = () => {
@@ -462,6 +464,9 @@ class GameScene extends Scene {
       if (!this.isPaused) this._genNoteSequence();
     }, 500); */
 
+    this.noteSpeed = this.GAME_DATA.TYPE === "AUTH" ? this.user.noteSpeed : this.noteSpeed;
+    this.noteGenerateLag = this.GAME_DATA.TYPE === "AUTH" ? this.user.noteSpeed : this.noteGenerateLag;
+
     console.log("Game Number", this.gameNunber);
   }
 
@@ -555,8 +560,9 @@ class GameScene extends Scene {
 
     this.fretKeys.forEach((key) => {
       key.removeListners();
-    })
+    });
 
+    this.NOISE_SOUND.stop();
     this.isPaused = true;
 
     console.table(this.passMetrics);

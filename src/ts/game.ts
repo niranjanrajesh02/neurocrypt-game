@@ -1,7 +1,7 @@
 import hourGlass from "../../static/images/hour.png";
 import SceneManager from "./lib/engine/sceneManager";
 import { gameConfig } from "../data/config.json";
-import { StartScene, GameScene, OverScene } from "./scenes";
+import { StartScene, GameScene, OverScene, FinishScene } from "./scenes";
 import { Application, BitmapFont, SCALE_MODES, settings, utils } from "pixi.js";
 
 let type = "WebGL";
@@ -43,6 +43,7 @@ function setup() {
   scenes.add("start", new StartScene(app, scenes));
   scenes.add("game",  new GameScene(app, scenes));
   scenes.add("over",  new OverScene(app, scenes));
+  scenes.add("finish", new FinishScene(app, scenes));
 
   scenes.start("start");
 }

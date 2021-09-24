@@ -10,6 +10,8 @@ const initialState: initialStateInterface = {
   value: {
     uid: "",
     passSeq: [],
+    noteSpeed: 0,
+    noteGenerateLag: 30,
   }
 }
 

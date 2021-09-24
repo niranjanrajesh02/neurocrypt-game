@@ -85,9 +85,13 @@ auth.onAuthStateChanged(user => {
           const pass = vals[Math.floor(Math.random() * vals.length)]
           userRef.child("passSeq").set(pass);
 
-          store.dispatch(setUser({ uid: user.uid, passSeq: pass }));
+          store.dispatch(setUser({ ...store.getState().user.value, uid: user.uid, passSeq: pass }));
         } else {
-          store.dispatch(setUser({ uid: user.uid, passSeq: userData.passSeq }));
+          store.dispatch(setUser({ ...store.getState().user.value, uid: user.uid, passSeq: userData.passSeq }));
+          console.log(userData);
+          if (userData.noteSpeed && userData.noteGenerateLag) {
+            store.dispatch(setUser({ ...store.getState().user.value, noteSpeed: userData.noteSpeed, noteGenerateLag: userData.noteGenerateLag }));
+          }
         }
       });
 

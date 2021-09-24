@@ -10,6 +10,8 @@ interface gameDataInterface {
 interface userInterface {
   uid: string,
   passSeq: string[],
+  noteSpeed: number,
+  noteGenerateLag: number,
   [index: string]: any,
 }
 
