@@ -22,6 +22,8 @@ class Note extends Graphics {
 
     this.position.set(xPos, -100);
 
+    this.tint = 0x000000;
+
     this.shouldColorChange = false;
     this.colorChangeTime = 3;
     this.colorTimer = 1;

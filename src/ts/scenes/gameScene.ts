@@ -306,29 +306,31 @@ class GameScene extends Scene {
         if (!isOtherKeyDown) {
           this.frets[i].isPressed = true;
 
-          switch (i) {
-            case 0:
-              this.FRET_SOUND.one.play();
-              break;
-            case 1:
-              this.FRET_SOUND.two.play();
-              break;
-            case 2:
-              this.FRET_SOUND.three.play();
-              break;
-            case 3:
-              this.FRET_SOUND.two.play();
-              break;
-            case 4:
-              this.FRET_SOUND.three.play();
-              break;
-            case 5:
-              this.FRET_SOUND.one.play();
-              break;
+          if (this.GAME_DATA.AUD) {
+            switch (i) {
+              case 0:
+                this.FRET_SOUND.one.play();
+                break;
+              case 1:
+                this.FRET_SOUND.two.play();
+                break;
+              case 2:
+                this.FRET_SOUND.three.play();
+                break;
+              case 3:
+                this.FRET_SOUND.two.play();
+                break;
+              case 4:
+                this.FRET_SOUND.three.play();
+                break;
+              case 5:
+                this.FRET_SOUND.one.play();
+                break;
 
-            default:
-              this.FRET_SOUND.one.play();
-              break;
+              default:
+                this.FRET_SOUND.one.play();
+                break;
+            }
           }
         }
       }
@@ -348,10 +350,13 @@ class GameScene extends Scene {
     const spaceKey = new keyboard(" ");
     spaceKey.release = () => {
       this.isPaused = !this.isPaused;
-      if (!this.NOISE_SOUND.playing())
-        this.NOISE_SOUND.play()
-      else
-        this.NOISE_SOUND.pause();
+
+      if (this.GAME_DATA.AUD) {
+        if (!this.NOISE_SOUND.playing())
+          this.NOISE_SOUND.play()
+        else
+          this.NOISE_SOUND.pause();
+      }
     }
   }
 
@@ -419,7 +424,7 @@ class GameScene extends Scene {
   }
 
   private _noteSpeedControl() {
-    
+
     const alpha = 10;
     const beta = 25;
     const desiredHitRate = 0.7;
@@ -442,8 +447,8 @@ class GameScene extends Scene {
 
   private _isIthBlock(i: number, callback: () => void) {
     if ((this.indexOfNote !== this.prevIndexOfNote) &&
-        (this.indexOfNote % i === 0) && 
-        (this.indexOfNote !== 0)) {
+      (this.indexOfNote % i === 0) &&
+      (this.indexOfNote !== 0)) {
       callback();
     }
 
@@ -498,7 +503,10 @@ class GameScene extends Scene {
 
       this.notes.forEach((note, index): void => {
         note.move(_delta);
-        note.induceEpilepsy();
+
+        if (this.GAME_DATA.VIS) {
+          note.induceEpilepsy();
+        }
 
         this.frets.forEach((fret) => {
           if (collisionCheck(fret, note)) {
