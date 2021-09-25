@@ -12,7 +12,7 @@ class OverScene extends Scene {
   private timer;
   private timerText;
   private hourGlass;
-  private BREAK_TIME = 5; // in seconds
+  private BREAK_TIME = 20; // in seconds
 
   private timerInterval!: NodeJS.Timer;
 

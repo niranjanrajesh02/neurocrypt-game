@@ -9,11 +9,12 @@
   - [X] Visual Separators x 4 added left and right spacing
   - [X] Sync up the note speed between database and game.
   - [ ] Final clean up
-    * [ ] Make the timer 20 seconds.
-    * [ ] Remove pause feature.
-    * [ ] Make sure the game starts in TRAIN mode.
+    * [X] Make the timer 20 seconds.
+    * [X] Make sure the game starts in TRAIN mode.
     * [ ] Wipe the database.
-    * [ ] Remove escape feature.
+    * [X] Remove pause feature.
+    * [X] Remove escape feature.
+    * [ ] Remove unnecessary console logs
 
 
 ## CONFIRM

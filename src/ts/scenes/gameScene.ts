@@ -344,23 +344,23 @@ class GameScene extends Scene {
       }
     })
 
-    const escKey = new keyboard("Escape");
+    /* const escKey = new keyboard("Escape");
     escKey.release = () => {
       this.NOISE_SOUND.stop();
       this.isPaused = true;
       this._blockOver();
-    }
+    } */
 
     const spaceKey = new keyboard(" ");
     spaceKey.release = () => {
-      this.isPaused = !this.isPaused;
+      this.isPaused = false;
 
-      if (this.GAME_DATA.AUD) {
+      /* if (this.GAME_DATA.AUD) {
         if (!this.NOISE_SOUND.playing())
           this.NOISE_SOUND.play()
         else
           this.NOISE_SOUND.pause();
-      }
+      } */
     }
   }
 
