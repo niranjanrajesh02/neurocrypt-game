@@ -381,7 +381,7 @@ class GameScene extends Scene {
   }
 
   private _genNoteSequence(): void {
-    console.log(this.indexOfNote, this.noteSequence.length - 1);
+    // console.log(this.indexOfNote, this.noteSequence.length - 1);
 
     if (this.indexOfNote > this.noteSequence.length - 1) {
       if ((this.indexOfNote < 5 * 108 - 1) && (this.user.passSeq)) {
@@ -494,7 +494,7 @@ class GameScene extends Scene {
       this._isIthBlock(20, () => {
         this._noiseControl();
         this._noteSpeedControl();
-        console.log("[CALLBACK SUCCESS]")
+        // console.log("[CALLBACK SUCCESS]")
       })
 
       this.frets.forEach((fret) => {
