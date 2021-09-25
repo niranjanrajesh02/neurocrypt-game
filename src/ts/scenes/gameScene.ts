@@ -270,7 +270,11 @@ class GameScene extends Scene {
       const gap = 80;
 
       const line = new Graphics();
-      line.lineStyle(12, 0x000000, 1);
+      if (this.GAME_DATA.VIS) {
+        line.lineStyle(12, 0x000000, 1);
+      } else {
+        line.lineStyle(4, 0x000000, 1);
+      }
 
       line.moveTo(offsetX + i * gap, 100);
       line.lineTo(offsetX + i * gap, this.WINDOW_HEIGHT - 40);
