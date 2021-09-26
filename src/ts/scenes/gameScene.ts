@@ -270,11 +270,11 @@ class GameScene extends Scene {
       const gap = 80;
 
       const line = new Graphics();
-      if (this.GAME_DATA.VIS) {
+      /* if (this.GAME_DATA.VIS) {
         line.lineStyle(12, 0x000000, 1);
       } else {
-        line.lineStyle(4, 0x000000, 1);
-      }
+      } */
+      line.lineStyle(4, 0x000000, 1);
 
       line.moveTo(offsetX + i * gap, 100);
       line.lineTo(offsetX + i * gap, this.WINDOW_HEIGHT - 40);
@@ -310,32 +310,32 @@ class GameScene extends Scene {
         if (!isOtherKeyDown) {
           this.frets[i].isPressed = true;
 
-          if (this.GAME_DATA.AUD) {
-            switch (i) {
-              case 0:
-                this.FRET_SOUND.one.play();
-                break;
-              case 1:
-                this.FRET_SOUND.two.play();
-                break;
-              case 2:
-                this.FRET_SOUND.three.play();
-                break;
-              case 3:
-                this.FRET_SOUND.two.play();
-                break;
-              case 4:
-                this.FRET_SOUND.three.play();
-                break;
-              case 5:
-                this.FRET_SOUND.one.play();
-                break;
+          switch (i) {
+            case 0:
+              this.FRET_SOUND.one.play();
+            break;
+            case 1:
+              this.FRET_SOUND.two.play();
+            break;
+            case 2:
+              this.FRET_SOUND.three.play();
+            break;
+            case 3:
+              this.FRET_SOUND.two.play();
+            break;
+            case 4:
+              this.FRET_SOUND.three.play();
+            break;
+            case 5:
+              this.FRET_SOUND.one.play();
+            break;
 
-              default:
-                this.FRET_SOUND.one.play();
-                break;
-            }
+            default:
+              this.FRET_SOUND.one.play();
+            break;
           }
+          /* if (this.GAME_DATA.AUD) {
+          } */
         }
       }
 
@@ -355,9 +355,9 @@ class GameScene extends Scene {
     spaceKey.release = () => {
       this.isPaused = false;
 
+      if (!this.NOISE_SOUND.playing())
+        this.NOISE_SOUND.play()
       /* if (this.GAME_DATA.AUD) {
-        if (!this.NOISE_SOUND.playing())
-          this.NOISE_SOUND.play()
         else
           this.NOISE_SOUND.pause();
       } */
@@ -508,9 +508,9 @@ class GameScene extends Scene {
       this.notes.forEach((note, index): void => {
         note.move(_delta);
 
-        if (this.GAME_DATA.VIS) {
+        /* if (this.GAME_DATA.VIS) {
           note.induceEpilepsy();
-        }
+        } */
 
         this.frets.forEach((fret) => {
           if (collisionCheck(fret, note)) {
