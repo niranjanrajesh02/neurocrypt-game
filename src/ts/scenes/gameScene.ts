@@ -358,8 +358,8 @@ class GameScene extends Scene {
       if (this.GAME_DATA.AUD) {
         if (!this.NOISE_SOUND.playing())
           this.NOISE_SOUND.play()
-        else
-          this.NOISE_SOUND.pause();
+        // else
+        //   this.NOISE_SOUND.pause();
       }
     }
   }
