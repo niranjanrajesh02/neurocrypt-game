@@ -1,7 +1,7 @@
 import Note from "../lib/note";
-import oneSound from "../../../static/audio/one.mp3";
+/* import oneSound from "../../../static/audio/one.mp3";
 import twoSound from "../../../static/audio/two.mp3";
-import threeSound from "../../../static/audio/three.mp3";
+import threeSound from "../../../static/audio/three.mp3"; */
 import noiseSound from "../../../static/audio/noise.mp3";
 import SceneManager from "../lib/engine/sceneManager";
 import Scene, { propType } from "../lib/engine/scene";
@@ -10,9 +10,10 @@ import { db } from "../lib/firebase";
 import { Howl } from "howler";
 import { store } from "../redux";
 import { subBlockGen, authBlockGen } from "../lib/sequenceGen";
-import { collisionCheck, keyboard, randomInt } from "../lib/engine/helper";
+import { collisionCheck, randomInt } from "../lib/engine/helper";
 import { dataToSend, fretInterface, gameDataInterface, userInterface } from "../interfaces";
 import { Application, BitmapText, Container, Graphics, Sprite, Texture } from "pixi.js";
+import { Keyboard } from "../lib/engine/keyboard";
 
 interface propInterface {
   app: Application; sceneManager: SceneManager; props?: propType;
@@ -43,11 +44,11 @@ class GameScene extends Scene {
     loop: true,
     volume: 0.20
   });
-  private FRET_SOUND = {
+  /* private FRET_SOUND = {
     one: new Howl({ src: [oneSound], volume: 0.4 }),
     two: new Howl({ src: [twoSound], volume: 0.4 }),
     three: new Howl({ src: [threeSound], volume: 0.4 }),
-  };
+  }; */
   private GAME_DATA!: gameDataInterface;
   private TOTAL_GAMES!: number;
   private gameNunber = 0;
@@ -57,7 +58,7 @@ class GameScene extends Scene {
 
   private noteInterval!: NodeJS.Timer;
   private frets: fretInterface[];
-  private fretKeys: keyboard[];                    // Keyboard objects
+  private fretKeys: string[];                    // Keyboard objects
   private isPaused: boolean = true;
 
   private noteTimer = 0;
@@ -292,54 +293,15 @@ class GameScene extends Scene {
 
   private _keyInputs = (): void => {
     for (const key of this.KEYS) {
-      const key_instance = new keyboard(key);
-      this.fretKeys.push(key_instance);
+      this.fretKeys.push(key);
     }
 
     this.fretKeys.forEach((key, i, arr) => {
-      key.press = () => {
 
-        let isOtherKeyDown = false;
-        arr.filter((otherKey) => otherKey !== key)
-          .forEach((otherKey) => {
-            if (otherKey.isDown) {
-              isOtherKeyDown = true;
-            }
-          })
-
-        if (!isOtherKeyDown) {
-          this.frets[i].isPressed = true;
-
-          if (this.GAME_DATA.AUD) {
-            switch (i) {
-              case 0:
-                this.FRET_SOUND.one.play();
-                break;
-              case 1:
-                this.FRET_SOUND.two.play();
-                break;
-              case 2:
-                this.FRET_SOUND.three.play();
-                break;
-              case 3:
-                this.FRET_SOUND.two.play();
-                break;
-              case 4:
-                this.FRET_SOUND.three.play();
-                break;
-              case 5:
-                this.FRET_SOUND.one.play();
-                break;
-
-              default:
-                this.FRET_SOUND.one.play();
-                break;
-            }
-          }
-        }
-      }
-
-      key.release = () => {
+      if (Keyboard.state.get(key)) {
+        this.frets[i].isPressed = true;
+        console.log(arr);
+      } else {
         this.frets[i].isPressed = false;
       }
     })
@@ -351,17 +313,17 @@ class GameScene extends Scene {
       this._blockOver();
     } */
 
-    const spaceKey = new keyboard(" ");
+    /* const spaceKey = new keyboard(" ");
     spaceKey.release = () => {
       this.isPaused = false;
 
-      /* if (this.GAME_DATA.AUD) {
+      if (this.GAME_DATA.AUD) {
         if (!this.NOISE_SOUND.playing())
           this.NOISE_SOUND.play()
         else
           this.NOISE_SOUND.pause();
-      } */
-    }
+      }
+    } */
   }
 
   private _generateNote(n: number, isPass?: boolean): void {
@@ -462,7 +424,6 @@ class GameScene extends Scene {
   public init() {
     this._setupScene();
     this._createFrets();
-    this._keyInputs();
     this._createLines();
     this._setupPause();
   }
@@ -482,9 +443,14 @@ class GameScene extends Scene {
   public update(_delta: number): void {
     if (!this.user.uid) this.scenes.start("start");
 
+    if (Keyboard.state.get(" ")) {
+      this.isPaused = false;
+    }
+
     if (!this.isPaused) {
       // console.log(_delta)
       this.pauseSpace.visible = false;
+      this._keyInputs();
 
       this.noteTimer = this.noteTimer > 0 ? --this.noteTimer : this.noteGenerateLag;
       if (this.noteTimer === 0) {
@@ -569,10 +535,6 @@ class GameScene extends Scene {
 
   public stop(): void {
     clearInterval(this.noteInterval);
-
-    this.fretKeys.forEach((key) => {
-      key.removeListners();
-    });
 
     this.NOISE_SOUND.stop();
     this.isPaused = true;
