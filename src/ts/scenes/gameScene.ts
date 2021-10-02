@@ -474,7 +474,7 @@ class GameScene extends Scene {
     }, 500); */
 
     this.noteSpeed = this.GAME_DATA.TYPE === "AUTH" ? this.user.noteSpeed : this.noteSpeed;
-    this.noteGenerateLag = this.GAME_DATA.TYPE === "AUTH" ? this.user.noteSpeed : this.noteGenerateLag;
+    this.noteGenerateLag = this.GAME_DATA.TYPE === "AUTH" ? this.user.noteGenerateLag : this.noteGenerateLag;
 
     console.log("Game Number", this.gameNunber);
   }
