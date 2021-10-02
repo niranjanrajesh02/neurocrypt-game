@@ -1,7 +1,7 @@
 import Note from "../lib/note";
-/* import oneSound from "../../../static/audio/one.mp3";
+import oneSound from "../../../static/audio/one.mp3";
 import twoSound from "../../../static/audio/two.mp3";
-import threeSound from "../../../static/audio/three.mp3"; */
+import threeSound from "../../../static/audio/three.mp3";
 import noiseSound from "../../../static/audio/noise.mp3";
 import SceneManager from "../lib/engine/sceneManager";
 import Scene, { propType } from "../lib/engine/scene";
@@ -44,11 +44,11 @@ class GameScene extends Scene {
     loop: true,
     volume: 0.20
   });
-  /* private FRET_SOUND = {
+  private FRET_SOUND = {
     one: new Howl({ src: [oneSound], volume: 0.4 }),
     two: new Howl({ src: [twoSound], volume: 0.4 }),
     three: new Howl({ src: [threeSound], volume: 0.4 }),
-  }; */
+  };
   private GAME_DATA!: gameDataInterface;
   private TOTAL_GAMES!: number;
   private gameNunber = 0;
@@ -120,7 +120,7 @@ class GameScene extends Scene {
     this.hitRateText = new BitmapText(`Hit Rate: ${this.hitRate.toFixed(2)}`, this.FONT_SETTINGS);
 
     this.frets = [];
-    this.fretKeys = [];
+    this.fretKeys = ["KeyS", "KeyD", "KeyF", "KeyJ", "KeyK", "KeyL"];
     this.notes = [];
 
     this.dataToSend = {
@@ -292,19 +292,52 @@ class GameScene extends Scene {
   }
 
   private _keyInputs = (): void => {
-    for (const key of this.KEYS) {
-      this.fretKeys.push(key);
-    }
-
     this.fretKeys.forEach((key, i, arr) => {
-
       if (Keyboard.state.get(key)) {
-        this.frets[i].isPressed = true;
-        console.log(arr);
+
+        let isOtherKeyDown = false;
+        arr.filter(otherKey => otherKey !== key)
+          .forEach((otherKey) => {
+            if (Keyboard.state.get(otherKey)) {
+              isOtherKeyDown = true;
+            }
+          });
+
+        if (!isOtherKeyDown) {
+          if (this.GAME_DATA.AUD) {
+            switch (i) {
+              case 0:
+                if (!this.frets[i].isPressed) this.FRET_SOUND.one.play();
+                break;
+              case 1:
+                if (!this.frets[i].isPressed) this.FRET_SOUND.two.play();
+                break;
+              case 2:
+                if (!this.frets[i].isPressed) this.FRET_SOUND.three.play();
+                break;
+              case 3:
+                if (!this.frets[i].isPressed) this.FRET_SOUND.two.play();
+                break;
+              case 4:
+                if (!this.frets[i].isPressed) this.FRET_SOUND.three.play();
+                break;
+              case 5:
+                if (!this.frets[i].isPressed) this.FRET_SOUND.one.play();
+                break;
+
+              default:
+                this.FRET_SOUND.one.play();
+                break;
+            }
+          }
+
+          this.frets[i].isPressed = true;
+        }
+
       } else {
         this.frets[i].isPressed = false;
       }
-    })
+    });
 
     /* const escKey = new keyboard("Escape");
     escKey.release = () => {
@@ -435,7 +468,7 @@ class GameScene extends Scene {
     }, 500); */
 
     this.noteSpeed = this.GAME_DATA.TYPE === "AUTH" ? this.user.noteSpeed : this.noteSpeed;
-    this.noteGenerateLag = this.GAME_DATA.TYPE === "AUTH" ? this.user.noteSpeed : this.noteGenerateLag;
+    this.noteGenerateLag = this.GAME_DATA.TYPE === "AUTH" ? this.user.noteGenerateLag : this.noteGenerateLag;
 
     console.log("Game Number", this.gameNunber);
   }
@@ -443,14 +476,18 @@ class GameScene extends Scene {
   public update(_delta: number): void {
     if (!this.user.uid) this.scenes.start("start");
 
-    if (Keyboard.state.get(" ")) {
+    if (Keyboard.state.get("Space")) {
       this.isPaused = false;
+
+      if (this.GAME_DATA.AUD) {
+        if (!this.NOISE_SOUND.playing())
+          this.NOISE_SOUND.play()
+      }
     }
 
     if (!this.isPaused) {
       // console.log(_delta)
       this.pauseSpace.visible = false;
-      this._keyInputs();
 
       this.noteTimer = this.noteTimer > 0 ? --this.noteTimer : this.noteGenerateLag;
       if (this.noteTimer === 0) {
@@ -528,6 +565,7 @@ class GameScene extends Scene {
         }
       });
 
+      this._keyInputs();
     } else {
       this.pauseSpace.visible = true;
     }
