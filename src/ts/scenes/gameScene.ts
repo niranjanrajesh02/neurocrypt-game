@@ -9,7 +9,7 @@ import Scene, { propType } from "../lib/engine/scene";
 import { db } from "../lib/firebase";
 import { Howl } from "howler";
 import { store } from "../redux";
-import { subBlockGen, authBlockGen } from "../lib/sequenceGen";
+import { subBlockGen } from "../lib/sequenceGen";
 import { collisionCheck, randomInt } from "../lib/engine/helper";
 import { dataToSend, fretInterface, gameDataInterface, userInterface } from "../interfaces";
 import { Application, BitmapText, Container, Graphics, Sprite, Texture } from "pixi.js";
@@ -109,10 +109,11 @@ class GameScene extends Scene {
       this.user = store.getState().user.value;
       console.log(this.user);
       this.GAME_DATA = store.getState().gameData.value;
-      console.log(this.GAME_DATA.TYPE === 'TRAIN' ? '[TRAINING MODE]' : '[AUTHENTICATION MODE]');
+      console.log('[TRAINING MODE]');
+      console.log(this.GAME_DATA);
 
-      this.noteSequence = this.GAME_DATA.TYPE === "TRAIN" ? subBlockGen(this.user.passSeq) : authBlockGen(this.user.passSeq);
-      this.TOTAL_GAMES = this.GAME_DATA.TYPE === "TRAIN" ? 7 : 1;
+      this.noteSequence = subBlockGen(this.user.passSeq);
+      this.TOTAL_GAMES = 7;
     });
 
 
@@ -164,7 +165,7 @@ class GameScene extends Scene {
       hits: this.hits,
       misses: this.misses,
       hitRate: this.hitRate,
-      session: this.GAME_DATA.SESSION,
+      session: "g0-train-aud",
       block: [
         ...this.dataToSend.block,
         {
@@ -272,11 +273,8 @@ class GameScene extends Scene {
       const gap = 80;
 
       const line = new Graphics();
-      if (this.GAME_DATA.VIS) {
-        line.lineStyle(12, 0x000000, 1);
-      } else {
-        line.lineStyle(4, 0x000000, 1);
-      }
+
+      line.lineStyle(4, 0x000000, 1);
 
       line.moveTo(offsetX + i * gap, 100);
       line.lineTo(offsetX + i * gap, this.WINDOW_HEIGHT - 40);
@@ -305,31 +303,29 @@ class GameScene extends Scene {
           });
 
         if (!isOtherKeyDown) {
-          if (this.GAME_DATA.AUD) {
-            switch (i) {
-              case 0:
-                if (!this.frets[i].isPressed) this.FRET_SOUND.one.play();
-                break;
-              case 1:
-                if (!this.frets[i].isPressed) this.FRET_SOUND.two.play();
-                break;
-              case 2:
-                if (!this.frets[i].isPressed) this.FRET_SOUND.three.play();
-                break;
-              case 3:
-                if (!this.frets[i].isPressed) this.FRET_SOUND.two.play();
-                break;
-              case 4:
-                if (!this.frets[i].isPressed) this.FRET_SOUND.three.play();
-                break;
-              case 5:
-                if (!this.frets[i].isPressed) this.FRET_SOUND.one.play();
-                break;
+          switch (i) {
+            case 0:
+              if (!this.frets[i].isPressed) this.FRET_SOUND.one.play();
+              break;
+            case 1:
+              if (!this.frets[i].isPressed) this.FRET_SOUND.two.play();
+              break;
+            case 2:
+              if (!this.frets[i].isPressed) this.FRET_SOUND.three.play();
+              break;
+            case 3:
+              if (!this.frets[i].isPressed) this.FRET_SOUND.two.play();
+              break;
+            case 4:
+              if (!this.frets[i].isPressed) this.FRET_SOUND.three.play();
+              break;
+            case 5:
+              if (!this.frets[i].isPressed) this.FRET_SOUND.one.play();
+              break;
 
-              default:
-                this.FRET_SOUND.one.play();
-                break;
-            }
+            default:
+              this.FRET_SOUND.one.play();
+              break;
           }
 
           this.frets[i].isPressed = true;
@@ -468,8 +464,8 @@ class GameScene extends Scene {
       if (!this.isPaused) this._genNoteSequence();
     }, 500); */
 
-    this.noteSpeed = this.GAME_DATA.TYPE === "AUTH" ? this.user.noteSpeed : this.noteSpeed;
-    this.noteGenerateLag = this.GAME_DATA.TYPE === "AUTH" ? this.user.noteGenerateLag : this.noteGenerateLag;
+    this.noteSpeed = this.noteSpeed;
+    this.noteGenerateLag = this.noteGenerateLag;
 
     console.log("Game Number", this.gameNunber);
   }
@@ -480,10 +476,8 @@ class GameScene extends Scene {
     if (Keyboard.state.get("Space")) {
       this.isPaused = false;
 
-      if (this.GAME_DATA.AUD) {
-        if (!this.NOISE_SOUND.playing())
-          this.NOISE_SOUND.play()
-      }
+      if (!this.NOISE_SOUND.playing())
+        this.NOISE_SOUND.play()
     }
 
     if (!this.isPaused) {
@@ -511,10 +505,6 @@ class GameScene extends Scene {
 
       this.notes.forEach((note, index): void => {
         note.move(_delta);
-
-        if (this.GAME_DATA.VIS) {
-          note.induceEpilepsy();
-        }
 
         this.frets.forEach((fret) => {
           if (collisionCheck(fret, note)) {
