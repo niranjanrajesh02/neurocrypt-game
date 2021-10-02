@@ -6,7 +6,7 @@ import Scene, { propType } from "../lib/engine/scene";
 import { db } from "../lib/firebase";
 import { Howl } from "howler";
 import { store } from "../redux";
-import { subBlockGen } from "../lib/sequenceGen";
+import { authBlockGen, subBlockGen } from "../lib/sequenceGen";
 import { collisionCheck, randomInt } from "../lib/engine/helper";
 import { dataToSend, fretInterface, gameDataInterface, userInterface } from "../interfaces";
 import { Application, BitmapText, Container, Graphics, Sprite, Texture } from "pixi.js";
@@ -101,10 +101,10 @@ class GameScene extends Scene {
       this.user = store.getState().user.value;
       console.log(this.user);
       this.GAME_DATA = store.getState().gameData.value;
-      console.log( '[TRAINING MODE]\n', this.GAME_DATA);
+      console.log( '[AUTHENTICATION MODE]\n', this.GAME_DATA);
 
-      this.noteSequence = subBlockGen(this.user.passSeq);
-      this.TOTAL_GAMES = 7;
+      this.noteSequence = authBlockGen(this.user.passSeq);
+      this.TOTAL_GAMES = 1;
     });
 
 
