@@ -355,12 +355,12 @@ class GameScene extends Scene {
     spaceKey.release = () => {
       this.isPaused = false;
 
-      /* if (this.GAME_DATA.AUD) {
+      if (this.GAME_DATA.AUD) {
         if (!this.NOISE_SOUND.playing())
           this.NOISE_SOUND.play()
-        else
-          this.NOISE_SOUND.pause();
-      } */
+        // else
+        //   this.NOISE_SOUND.pause();
+      }
     }
   }
 
