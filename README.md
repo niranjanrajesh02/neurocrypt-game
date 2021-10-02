@@ -11,10 +11,10 @@
   - [ ] Final clean up
     * [X] Make the timer 20 seconds.
     * [X] Make sure the game starts in TRAIN mode.
-    * [ ] Wipe the database.
+    * [X] Wipe the database.
     * [X] Remove pause feature.
     * [X] Remove escape feature.
-    * [ ] Remove unnecessary console logs
+    * [X] Remove unnecessary console logs
 
 
 ## CONFIRM

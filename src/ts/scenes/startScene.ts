@@ -1,6 +1,7 @@
 import { Application, Sprite, Text, Texture } from "pixi.js";
 import { userInterface } from "../interfaces";
 import { createText } from "../lib/engine/helper";
+import { Keyboard } from "../lib/engine/keyboard";
 import Scene, { propType } from "../lib/engine/scene";
 import SceneManager from "../lib/engine/sceneManager";
 import { store } from "../redux";
@@ -50,15 +51,21 @@ export default class StartScene extends Scene {
     this.button.addChild(buttonText);
     this.button.interactive = true;
 
+    Keyboard.initialize();
+
     this.button.on('pointerup', () => {
       if (this.user.uid) this.scenes.start("game");
       else alert("Please Login");
     });
   }
 
-  public start(): void {}
+  public start(): void {
+  }
 
   public update(_delta: number): void {
+    if (Keyboard.state.get("ArrowRight")) {
+      console.log("hello")
+    }
 
   }
 }
