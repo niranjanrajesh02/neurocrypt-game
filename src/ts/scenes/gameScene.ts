@@ -429,8 +429,8 @@ class GameScene extends Scene {
       if (!this.isPaused) this._genNoteSequence();
     }, 500); */
 
-    this.noteSpeed = this.noteSpeed;
-    this.noteGenerateLag = this.noteGenerateLag;
+    this.noteSpeed = this.user.noteSpeed;
+    this.noteGenerateLag = this.user.noteGenerateLag;
 
     console.log("Game Number", this.gameNunber);
   }
