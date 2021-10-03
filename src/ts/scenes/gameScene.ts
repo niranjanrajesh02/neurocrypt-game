@@ -165,7 +165,7 @@ class GameScene extends Scene {
       hits: this.hits,
       misses: this.misses,
       hitRate: this.hitRate,
-      session: "g0-train-aud",
+      session: "g0-auth-aud",
       block: [
         ...this.dataToSend.block,
         {
