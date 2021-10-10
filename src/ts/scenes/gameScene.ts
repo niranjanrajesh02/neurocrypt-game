@@ -332,6 +332,7 @@ class GameScene extends Scene {
             }
           }
 
+          console.log(`[ ${key} PRESSED ]`)
           this.frets[i].isPressed = true;
         }
 
@@ -520,6 +521,7 @@ class GameScene extends Scene {
           if (collisionCheck(fret, note)) {
             if (fret.isPressed) {
               this._killNotes(note, index);
+              console.log("[NOTE HIT]")
 
               this.hits += 1;
               this.subBlockMetrics.hits += 1;
@@ -537,13 +539,13 @@ class GameScene extends Scene {
                 this.noiseMetrics.hits += 1;
                 this.noiseMetrics.hitRate = this.noiseMetrics.hits / (this.noiseMetrics.misses + this.noiseMetrics.hits);
               }
-
             }
           }
         });
 
         if (note.y > this.WINDOW_HEIGHT + 50) {
           this._killNotes(note, index);
+          console.log("[NOTE MISSED]")
 
           this.misses += 1;
           this.subBlockMetrics.misses += 1;
