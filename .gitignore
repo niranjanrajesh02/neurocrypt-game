@@ -5,3 +5,11 @@ dist-ssr
 *.local
 ignore/
 .vscode
+
+data/*.json
+data/*.txt
+data/*.csv
+
+**/venv
+**/images
+**/.ipynb_checkpoints
