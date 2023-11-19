@@ -1,7 +1,8 @@
 import { Application, Sprite, Text, Texture } from "pixi.js";
 import { userInterface } from "../interfaces";
 import { createText } from "../lib/engine/helper";
-import { Keyboard } from "../lib/engine/keyboard";
+import { Keyboard } from "../lib/engine/keyboard";
+
 import Scene, { propType } from "../lib/engine/scene";
 import SceneManager from "../lib/engine/sceneManager";
 import { store } from "../redux";
@@ -52,7 +53,9 @@ export default class StartScene extends Scene {
     this.button.interactive = true;
 
     Keyboard.initialize();
-
+    console.log('====================================');
+    console.log(this.user);
+    console.log('====================================');
     this.button.on('pointerup', () => {
       if (this.user.uid) this.scenes.start("game");
       else alert("Please Login");
