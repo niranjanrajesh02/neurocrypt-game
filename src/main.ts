@@ -1,9 +1,9 @@
 import "./style.css";
 import app from "./ts/game";
-// import passSeqs from "./data/passSeq.json";
+import passSeqs from "./data/passSeq.json";
 import { $ } from "./ts/lib/dom";
 import { auth, db, provider } from "./ts/lib/firebase";
-import { child, get, ref } from "firebase/database";
+import { child, get, ref, set } from "firebase/database";
 import { signInWithPopup } from "firebase/auth";
 import { setGameData, setUser, store } from "./ts/redux";
 
@@ -60,13 +60,12 @@ auth.onAuthStateChanged((user) => {
     $("#userDetails")!.innerHTML = `<h3>Hello ${user.displayName}</h3>`;
 
     // Set the global game features: AUD or VIS
-    const gameDataRef = ref(db);
+    const gameDataRef = ref(db, "/_gamedata");
     get(gameDataRef)
       .then((snap) => {
         if (!snap.exists()) {
           console.log("NO DATA EXISTS", snap);
         }
-        console.log("GAME DATA");
         store.dispatch(setGameData(snap.val()));
         console.log("GAME DATA", store.getState().gameData.value);
       })
@@ -90,9 +89,12 @@ auth.onAuthStateChanged((user) => {
         }
 
         console.log("[PASS SEQUENCE NOT FOUND]");
-        // const vals = Object.values(passSeqs);
-        // const pass = vals[Math.floor(Math.random() * vals.length)];
+        const vals = Object.values(passSeqs);
+        const pass = vals[Math.floor(Math.random() * vals.length)];
         // userRef.child("passSeq").set(pass);
+        set(userRef, {
+          passSeq: pass,
+        });
 
         store.dispatch(
           setUser({

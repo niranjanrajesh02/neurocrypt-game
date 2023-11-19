@@ -211,6 +211,9 @@ class GameScene extends Scene {
       ],
     };
 
+    // EDIT THIS THING TO SEND DATA TO FIREBASE BACKEND
+    // https://firebase.google.com/docs/database/web/read-and-write?authuser=0#web-modular-api_4
+
     // const userRef = ref(db, this.user.uid);
     // userRef.push(this.dataToSend).then(() => console.log("[DATA PUSHED]"));
     // userRef.child("noteSpeed").set(this.noteSpeed);
@@ -555,6 +558,9 @@ class GameScene extends Scene {
         ? this.user.noteGenerateLag
         : this.noteGenerateLag;
 
+    alert(
+      "YO NIRANJAN, gameScene.ts, line number 216. Edit from there to save data in the backend and stuff",
+    );
     console.log("Game Number", this.gameNunber);
   }
 
